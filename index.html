@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rotary Explorer · Springvale City</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Cormorant:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0f1c2e;
+  --navy2: #162436;
+  --navy3: #1e3248;
+  --gold: #d4a843;
+  --gold2: #f0c96a;
+  --white: #f4f0e8;
+  --muted: #7a8fa8;
+  --border: rgba(255,255,255,0.07);
+  --radius: 14px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--navy);
+  color: var(--white);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+#header {
+  background: var(--navy);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 10px;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gear {
+  width: 24px; height: 24px;
+  animation: spin 16s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.app-title {
+  font-family: 'Cormorant', serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+  flex: 1;
+}
+
+/* breadcrumb */
+#breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+.bc {
+  font-size: 0.7rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.bc:hover, .bc:active { background: rgba(255,255,255,0.07); color: var(--gold); }
+.bc.current { color: var(--gold2); font-weight: 500; }
+.bc-sep { color: rgba(255,255,255,0.2); font-size: 0.65rem; }
+
+/* ── MAIN SCROLL AREA ── */
+#main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 14px 40px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── SLIDE TRANSITION ── */
+.slide-enter {
+  animation: slideIn 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+.slide-back {
+  animation: slideBack 0.28s cubic-bezier(0.25,0.46,0.45,0.94) both;
+}
+@keyframes slideIn {
+  from { transform: translateX(32px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideBack {
+  from { transform: translateX(-24px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* ── FOCUS CARD (top of view) ── */
+.focus-card {
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.focus-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.focus-tag {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  opacity: 0.8;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.focus-title {
+  font-family: 'Cormorant', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.focus-sub {
+  font-size: 0.78rem;
+  opacity: 0.65;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* stat row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stat {
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.stat-n {
+  font-family: 'Cormorant', serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.stat-l {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  margin-top: 3px;
+}
+
+/* detail rows */
+.details {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 12px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  align-items: flex-start;
+}
+
+.detail-row:last-child { border-bottom: none; }
+
+.d-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 1px; width: 20px; }
+.d-body {}
+.d-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; margin-bottom: 1px; }
+.d-val { font-size: 0.8rem; opacity: 0.85; line-height: 1.45; }
+.d-val strong { color: var(--white); font-weight: 500; opacity: 1; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── CHILD CARDS ── */
+.children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.child-card {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .12s;
+  -webkit-tap-highlight-color: transparent;
+  active-scale: 0.98;
+}
+
+.child-card:active {
+  background: var(--navy3);
+  transform: scale(0.98);
+}
+
+.child-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.child-inner { flex: 1; min-width: 0; }
+
+.child-name {
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.child-meta {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.child-arrow {
+  font-size: 0.9rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.child-card.has-children .child-arrow { color: var(--gold); }
+
+/* highlight focus club in children */
+.child-card.is-focus {
+  border-color: rgba(212,168,67,0.4);
+  background: rgba(212,168,67,0.07);
+}
+
+/* ── COLORS per level ── */
+.col-0 { background: linear-gradient(135deg,#1a3358,#0f2040); border: 1px solid rgba(212,168,67,0.3); }
+.col-1 { background: linear-gradient(135deg,#0f3030,#0a2020); border: 1px solid rgba(45,212,191,0.3); }
+.col-2 { background: linear-gradient(135deg,#2a1800,#1a1000); border: 1px solid rgba(251,146,60,0.3); }
+.col-3 { background: linear-gradient(135deg,#1c0a30,#120720); border: 1px solid rgba(167,139,250,0.3); }
+.col-4 { background: linear-gradient(135deg,#0a1c30,#060f1e); border: 1px solid rgba(96,165,250,0.3); }
+.col-focus { background: linear-gradient(135deg,#2a0a0a,#1a0505); border: 1px solid rgba(224,64,64,0.4); }
+
+/* ── BACK BUTTON ── */
+#btn-back {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 2px 0;
+}
+#btn-back.visible { display: flex; }
+#btn-back:active { color: var(--gold); }
+
+/* ── EMPTY STATE ── */
+.leaf-note {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<div id="main">
+  <div id="header">
+    <div class="header-top">
+      <svg class="gear" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="20" stroke="#d4a843" stroke-width="3.5" fill="none"/>
+        <circle cx="50" cy="50" r="9" fill="rgba(212,168,67,0.15)" stroke="#d4a843" stroke-width="2"/>
+        <g stroke="#d4a843" stroke-width="4" stroke-linecap="round">
+          <line x1="50" y1="8"  x2="50" y2="22"/>
+          <line x1="50" y1="78" x2="50" y2="92"/>
+          <line x1="8"  y1="50" x2="22" y2="50"/>
+          <line x1="78" y1="50" x2="92" y2="50"/>
+          <line x1="20" y1="20" x2="30" y2="30"/>
+          <line x1="70" y1="70" x2="80" y2="80"/>
+          <line x1="80" y1="20" x2="70" y2="30"/>
+          <line x1="30" y1="70" x2="20" y2="80"/>
+        </g>
+      </svg>
+      <span class="app-title">Rotary Explorer</span>
+      <button id="btn-back">‹ Back</button>
+    </div>
+    <div id="breadcrumb"></div>
+  </div>
+
+  <div id="scroll">
+    <div id="view"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const COLORS = ['#d4a843','#2dd4bf','#fb923c','#a78bfa','#e04040','#60a5fa'];
+const LEVEL_NAMES = ['Global','Zone','District','Area','Club'];
+
+const DATA = {
+  id:'ri', label:'Rotary International', short:'RI', level:0,
+  tag:'Global · Level 1',
+  sub:'Founded 1905 · Evanston, Illinois, USA',
+  stats:[{n:'1.4M+',l:'Members'},{n:'35,000+',l:'Clubs'},{n:'200+',l:'Countries'},{n:'34',l:'Zones'}],
+  rows:[
+    {i:'🏛️',k:'Founded',v:'23 February 1905 in Chicago by Paul P. Harris'},
+    {i:'🌐',k:'HQ',v:'One Rotary Center, 1560 Sherman Ave, Evanston, Illinois'},
+    {i:'⚙️',k:'Motto',v:'"Service Above Self"'},
+    {i:'🎯',k:'Mission',v:'Service to others, integrity, world understanding, goodwill and peace'},
+    {i:'💛',k:'Focus Areas',v:'Peace · Disease Prevention · Water & Sanitation · Maternal Health · Education · Economic Development · Environment'},
+    {i:'📜',k:'Governance',v:'19-member Board of Directors; Council on Legislation every 3 years'},
+  ],
+  children:[{
+    id:'z8', label:'Zone 8', short:'Zone 8', level:1,
+    tag:'Zone · Level 2',
+    sub:'Australia, New Zealand & Pacific Islands',
+    stats:[{n:'~12',l:'Districts'},{n:'1,400+',l:'Clubs'},{n:'55,000+',l:'Members'},{n:'1',l:'RI Director'}],
+    rows:[
+      {i:'🗺️',k:'Coverage',v:'Australia, New Zealand, Papua New Guinea, Pacific Island nations'},
+      {i:'👤',k:'Leadership',v:'One RI Director elected by Zone 8 district governors to sit on the RI Board'},
+      {i:'📅',k:'Conference',v:'Annual Zone 8 / Pacific Rotary Leadership Institute (PRLI) conference'},
+      {i:'🤝',k:'Coordination',v:'Monthly meetings between District Governors and district leadership teams'},
+    ],
+    children:[{
+      id:'d9815', label:'District 9815', short:'D9815', level:2,
+      tag:'District · Level 3',
+      sub:'South-Eastern Melbourne · Mornington Peninsula · Gippsland',
+      stats:[{n:'87',l:'Clubs'},{n:'2,067',l:'Members'},{n:'267',l:'Honorary'},{n:'7',l:'Areas'}],
+      rows:[
+        {i:'📍',k:'Geography',v:'Eastern Melbourne, Mornington Peninsula, Dandenong Ranges, Gippsland to Orbost'},
+        {i:'🔀',k:'Formation',v:'Formed 2024 by merging Districts 9810 (Bay to Hills) and 9820 (Peninsula to Gippsland)'},
+        {i:'👤',k:'Leadership',v:'District Governor + Governor-Elect + Governor-Nominee + 7 Area Representatives'},
+        {i:'🎓',k:'Youth',v:'RYLA, RYPEN, NYSF, Interact, Rotaract, EarlyAct, MUNA, School Speech Contests'},
+        {i:'📅',k:'Conference',v:'2026 Combined 9815 & 9830 Conference in Hobart, March 2026'},
+      ],
+      children:[
+        {
+          id:'area1', label:'Area 1 — Bayside', short:'Area 1', level:3,
+          tag:'Community Group · Level 4',
+          sub:'Chelsea · Frankston · Beaumaris · Sandringham',
+          stats:[{n:'11',l:'Clubs'}],
+          rows:[
+            {i:'📍',k:'Coverage',v:'Beaumaris, Bentleigh, Chelsea, Frankston (North, City, Sunrise), Hampton, Moorabbin, Mordialloc, Peninsula 2.0, Sandringham'},
+            {i:'👤',k:'Community Leader',v:'Wil Cornelissen (Waverley Rotary Club)'},
+          ],
+          children:[]
+        },
+        {
+          id:'area2', label:'Area 2 — Whitehorse & Eastern', short:'Area 2', level:3,
+          tag:'Community Group · Level 4',
+          sub:'Box Hill · Glen Waverley · Mitcham · Manningham',
+          stats:[{n:'13',l:'Clubs'}],
+          rows:[
+            {i:'📍',k:'Coverage',v:'Box Hill Burwood, Box Hill Central, Forest Hill, Glen Waverley, Manningham City, Maroondah, Mitcham, Mont Albert & Surrey Hills, Mount Waverley, Nunawading, Waverley, Whitehorse Rotaract, Warrandyte Donvale'},
+          ],
+          children:[]
+        },
+        {
+          id:'area3', label:'Area 3 — South-East Metro', short:'Area 3', level:3,
+          tag:'Community Group · Level 4',
+          sub:'Springvale · Noble Park · Oakleigh · Berwick',
+          stats:[{n:'12',l:'Clubs'},{n:'~300',l:'Members'},{n:'1',l:'Area Rep'}],
+          rows:[
+            {i:'📍',k:'Coverage',v:'Springvale, Noble Park, Dandenong, Oakleigh, Clayton, Rowville, Berwick, Narre Warren, Monash'},
+            {i:'👤',k:'Area Representative',v:'Reports directly to District Governor; facilitates inter-club collaboration'},
+            {i:'🤝',k:'Shared Projects',v:'Joint fundraisers, community events, and district service initiatives across all 12 clubs'},
+          ],
+          children:[
+            {
+              id:'springvale', label:'Rotary Club of Springvale City', short:'Springvale City', level:4,
+              isFocus:true,
+              tag:'⭐ Your Club · Level 5',
+              sub:'Club #63157 · Springvale VIC 3171',
+              stats:[{n:'#63157',l:'Club No.'},{n:'Thu',l:'Day'},{n:'6:00pm',l:'Time'}],
+              rows:[
+                {i:'📍',k:'Venue',v:'Greyhound Entertainment Noodle Bar, View Road, Springvale VIC 3171'},
+                {i:'👤',k:'President 2024–25',v:'<strong>Jyoti Sharma</strong>'},
+                {i:'🏛️',k:'Foundation Chair',v:'Loc Huu Lam'},
+                {i:'🤝',k:'Membership Chair',v:'Angelina Colombino'},
+                {i:'🌍',k:'International Chair',v:'Seda Douglas'},
+                {i:'📣',k:'Public Image Chair',v:'Seray Lim'},
+                {i:'🏘️',k:'Community Chair',v:'Minh Le'},
+                {i:'🎓',k:'Youth Chair',v:'Cathy Jackson'},
+                {i:'🌟',k:'Signature Event',v:'Annual Polio Fund Raising Night — 6-course banquet for End Polio Now'},
+                {i:'✈️',k:'International Projects',v:'Service visits to Vietnam & Cambodia led by Loc Lam & Seda Douglas'},
+              ],
+              children:[]
+            },
+            {
+              id:'gde', label:'Greater Dandenong & Endeavour Hills', short:'Gr. Dandenong', level:4,
+              tag:'Sister Club · Level 5', sub:'District 9815 · Area 3',
+              rows:[{i:'📍',k:'Location',v:'Dandenong, City of Greater Dandenong'},{i:'🤝',k:'Relationship',v:'Sister club in Area 3 with Springvale City'}],
+              children:[]
+            },
+            {
+              id:'knox', label:'Rotary Club of Knox', short:'Knox', level:4,
+              tag:'Sister Club · Level 5', sub:'District 9815 · Area 3',
+              rows:[{i:'📍',k:'Location',v:'Knox, outer eastern suburbs of Melbourne'}],
+              children:[]
+            },
+            {
+              id:'monash', label:'Rotary Club of Monash', short:'Monash', level:4,
+              tag:'Sister Club · Level 5', sub:'District 9815 · Area 3',
+              rows:[{i:'📍',k:'Location',v:'Monash LGA, south-eastern Melbourne'}],
+              children:[]
+            },
+            {
+              id:'monash-r', label:'Monash Rotaract Club', short:'Monash Rotaract', level:4,
+              tag:'Sister Rotaract · Level 5', sub:'#88687 · District 9815 · Area 3',
+              rows:[
+                {i:'📍',k:'Meeting',v:'Mondays 7:30 pm · Clayton Hotel, 319 Clayton Rd, Clayton VIC'},
+                {i:'👤',k:'President',v:'Darcy Hammill'},
+                {i:'🎓',k:'Type',v:'Rotaract — for members aged 18–30'},
+              ],
+              children:[]
+            },
+            {
+              id:'narre', label:'Rotary Club of Narre Warren', short:'Narre Warren', level:4,
+              tag:'Sister Club · Level 5', sub:'District 9815 · Area 3',
+              rows:[{i:'📍',k:'Meeting',v:'Every 2nd Wed 6:30 pm · The Hill Restaurant, Berwick VIC 3806'}],
+              children:[]
+            },
+            {
+              id:'noble', label:'Rotary Club of Noble Park Dingley', short:'Noble Park', level:4,
+              tag:'Sister Club · Level 5', sub:'District 9815 · Area 3',
+              rows:[{i:'📍',k:'Location',v:'Noble Park & Dingley, south-eastern Melbourne'}],
+              children:[]
+            },
+            {
+              id:'oakleigh', label:'Oakleigh Clayton Huntingdale', short:'Oakleigh', level:4,
+              tag:'Sister Club · Level 5', sub:'#18381 · District 9815 · Area 3',
+              rows:[
+                {i:'📍',k:'Meeting',v:'Mondays 6:30 pm · Clayton Hotel, 319 Clayton Rd, Clayton VIC'},
+                {i:'👤',k:'President',v:'Steven Hill'},
+              ],
+              children:[]
+            },
+            {
+              id:'rowville', label:'Rotary Club of Rowville-Lysterfield', short:'Rowville', level:4,
+              tag:'Sister Club · Level 5', sub:'#65918 · District 9815 · Area 3',
+              rows:[
+                {i:'📍',k:'Meeting',v:'Tuesdays 7:00 pm · Tosaria Café, 60 Henderson Rd, Rowville VIC'},
+                {i:'👤',k:'President',v:'Bob Morris'},
+              ],
+              children:[]
+            },
+            {
+              id:'berwick', label:'Rotary Club of Berwick', short:'Berwick', level:4,
+              tag:'Sister Club · Level 5', sub:'District 9815 · Area 3',
+              rows:[
+                {i:'📍',k:'Meeting',v:"Thursdays 6:30 pm · Castello's Berwick Springs Hotel, Berwick VIC"},
+                {i:'📅',k:'Chartered',v:'3 May 1961'},
+              ],
+              children:[]
+            },
+            {
+              id:'casey', label:'Rotary Casey', short:'Casey', level:4,
+              tag:'Sister Club · Level 5', sub:'#84333 · District 9815 · Area 3',
+              rows:[
+                {i:'📍',k:'Meeting',v:'Mondays 7:00 pm · The Hill Restaurant, Parkhill Dr, Berwick VIC'},
+                {i:'👤',k:'President',v:'Jean Harrison'},
+              ],
+              children:[]
+            },
+            {
+              id:'casey-r', label:'Casey Cardinia Rotaract', short:'Casey Rotaract', level:4,
+              tag:'Sister Rotaract · Level 5', sub:'District 9815 · Area 3',
+              rows:[{i:'🎓',k:'Type',v:'Rotaract — youth-focused club, ages 18–30'}],
+              children:[]
+            },
+          ]
+        },
+        {
+          id:'area4', label:'Area 4 — Dandenong Ranges', short:'Area 4', level:3,
+          tag:'Community Group · Level 4', sub:'Hills and ranges east of Melbourne',
+          stats:[{n:'13',l:'Clubs'}],
+          rows:[{i:'📍',k:'Coverage',v:'Bayswater, Belgrave, Boronia, Emerald & District, Fern Tree Gully, Healesville, Koo Wee Rup, Lang Lang, Lilydale, Monbulk & District, Pakenham, Upper Yarra, Wandin'}],
+          children:[]
+        },
+        {
+          id:'area5', label:'Area 5 — Mornington Peninsula', short:'Area 5', level:3,
+          tag:'Community Group · Level 4', sub:'Mornington Peninsula',
+          stats:[{n:'9',l:'Clubs'}],
+          rows:[{i:'📍',k:'Coverage',v:'Cranbourne, Dromana, Hastings Western Port, Mornington, Mt Eliza, Mt Martha, Phillip Island/San Remo, Rosebud/Rye, Somerville Tyabb'}],
+          children:[]
+        },
+        {
+          id:'area6', label:'Area 6 — West Gippsland', short:'Area 6', level:3,
+          tag:'Community Group · Level 4', sub:'Western Gippsland communities',
+          stats:[{n:'9',l:'Clubs'}],
+          rows:[{i:'📍',k:'Coverage',v:'Drouin, Foster, Garfield, Inverloch, Korumburra, Leongatha, Sorrento, Trafalgar, Wonthaggi'}],
+          children:[]
+        },
+        {
+          id:'area7', label:'Area 7 — East Gippsland', short:'Area 7', level:3,
+          tag:'Community Group · Level 4', sub:'East Gippsland to the coast',
+          stats:[{n:'13',l:'Clubs'}],
+          rows:[{i:'📍',k:'Coverage',v:'Bairnsdale, Hazelwood, Lakes Entrance, Maffra, Mitchell River, Moe, Morwell, Orbost, Sale, Traralgon, Traralgon Central, Warragul, Yarram'}],
+          children:[]
+        },
+      ]
+    }]
+  }]
+};
+
+// ── STATE ─────────────────────────────────────────────────
+let stack = []; // history of parent nodes
+let current = DATA;
+let nodeMap = {};
+
+function indexNodes(node) {
+  nodeMap[node.id] = node;
+  (node.children||[]).forEach(indexNodes);
+}
+indexNodes(DATA);
+
+// ── COLOR helpers ─────────────────────────────────────────
+function nodeColor(node) {
+  if (node.isFocus) return '#e04040';
+  const palette = ['#d4a843','#2dd4bf','#fb923c','#a78bfa','#60a5fa'];
+  return palette[Math.min(node.level, palette.length-1)];
+}
+
+function focusClass(node) {
+  if (node.isFocus) return 'col-focus';
+  return 'col-' + Math.min(node.level, 4);
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function render(node, direction) {
+  current = node;
+  const view = document.getElementById('view');
+  const col = nodeColor(node);
+
+  let html = '';
+
+  // Focus card
+  html += `<div class="focus-card ${focusClass(node)}">`;
+  html += `<span class="focus-tag" style="color:${col}">${node.tag||''}</span>`;
+  html += `<div class="focus-title" style="color:${col}">${node.label}</div>`;
+  if (node.sub) html += `<div class="focus-sub">${node.sub}</div>`;
+
+  if (node.stats && node.stats.length) {
+    html += '<div class="stats-row">';
+    node.stats.forEach(s => {
+      html += `<div class="stat"><div class="stat-n" style="color:${col}">${s.n}</div><div class="stat-l">${s.l}</div></div>`;
+    });
+    html += '</div>';
+  }
+
+  if (node.rows && node.rows.length) {
+    html += '<div class="details">';
+    node.rows.forEach(r => {
+      html += `<div class="detail-row">
+        <span class="d-icon">${r.i}</span>
+        <div class="d-body">
+          <div class="d-label">${r.k}</div>
+          <div class="d-val">${r.v}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  // Children
+  const kids = node.children || [];
+  if (kids.length) {
+    html += `<div class="section-label">Inside this level (${kids.length})</div>`;
+    html += '<div class="children-list">';
+    kids.forEach(kid => {
+      const kc = nodeColor(kid);
+      const hasKids = kid.children && kid.children.length > 0;
+      html += `<div class="child-card ${kid.isFocus ? 'is-focus':''} ${hasKids ? 'has-children':''}" data-id="${kid.id}">
+        <div class="child-dot" style="background:${kc}"></div>
+        <div class="child-inner">
+          <div class="child-name">${kid.label}</div>
+          <div class="child-meta">${kid.tag || ''}${kid.sub ? ' · '+kid.sub : ''}</div>
+        </div>
+        <div class="child-arrow">${hasKids ? '›' : '·'}</div>
+      </div>`;
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="leaf-note">This is a leaf node — no sub-items.</div>';
+  }
+
+  view.innerHTML = html;
+  view.className = direction === 'back' ? 'slide-back' : 'slide-enter';
+
+  // Attach child clicks
+  view.querySelectorAll('.child-card').forEach(el => {
+    el.addEventListener('click', () => {
+      const kid = nodeMap[el.dataset.id];
+      if (!kid) return;
+      if (kid.children && kid.children.length > 0) {
+        // Drill down
+        stack.push(current);
+        render(kid, 'forward');
+        updateNav();
+        document.getElementById('scroll').scrollTop = 0;
+      } else {
+        // Show detail inline — jump to it as focus
+        stack.push(current);
+        render(kid, 'forward');
+        updateNav();
+        document.getElementById('scroll').scrollTop = 0;
+      }
+    });
+  });
+
+  updateNav();
+}
+
+function updateNav() {
+  // Back button
+  const btn = document.getElementById('btn-back');
+  if (stack.length > 0) {
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+
+  // Breadcrumb
+  const bc = document.getElementById('breadcrumb');
+  let html = '';
+  stack.forEach((n, i) => {
+    html += `<span class="bc" data-idx="${i}">${n.short || n.label}</span>`;
+    html += '<span class="bc-sep">›</span>';
+  });
+  html += `<span class="bc current">${current.short || current.label}</span>`;
+  bc.innerHTML = html;
+
+  bc.querySelectorAll('.bc[data-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      const target = stack[idx];
+      stack = stack.slice(0, idx);
+      render(target, 'back');
+      document.getElementById('scroll').scrollTop = 0;
+    });
+  });
+}
+
+// Back button
+document.getElementById('btn-back').addEventListener('click', () => {
+  if (!stack.length) return;
+  const prev = stack.pop();
+  render(prev, 'back');
+  document.getElementById('scroll').scrollTop = 0;
+});
+
+// ── INIT ──────────────────────────────────────────────────
+render(DATA, 'forward');
+</script>
+</body>
+</html>
